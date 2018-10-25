@@ -143,8 +143,7 @@ class LogALotTransformer(
             }
         })
 
-        val methods = clazz.declaredMethods
-        methods.forEach { method ->
+        clazz.declaredMethods.forEach { method ->
             val noBody = method.modifiers and Modifier.ABSTRACT == Modifier.ABSTRACT ||
                     method.modifiers and Modifier.NATIVE == Modifier.NATIVE
             if (!noBody && method.hasAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")) {

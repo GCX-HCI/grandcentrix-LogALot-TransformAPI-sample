@@ -1,9 +1,10 @@
-package grandcentrix.net.logalot
+package net.grandcentrix.logalot
 
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Button
+import grandcentrix.net.logalot.R
 import net.grandcentrix.gradle.logalot.annotations.LogALot
 
 /**
@@ -15,6 +16,7 @@ class MainActivity : AppCompatActivity() {
     private var myField = 0
 
     @Suppress("MagicNumber")
+    @LogALot
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
