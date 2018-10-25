@@ -1,10 +1,15 @@
 package net.grandcentrix.gradle.logalot
 
-import com.android.build.api.transform.*
+import com.android.build.api.transform.DirectoryInput
+import com.android.build.api.transform.Format
+import com.android.build.api.transform.QualifiedContent
+import com.android.build.api.transform.Transform
+import com.android.build.api.transform.TransformInvocation
 import com.android.build.gradle.BaseExtension
 import javassist.ClassPool
 import javassist.CtClass
-import javassist.CtMethod
+import javassist.expr.ExprEditor
+import javassist.expr.FieldAccess
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import java.io.File
@@ -60,10 +65,8 @@ class LogALotTransformer(
         outputDir.mkdirs()
 
         externalDepsJars.forEach {
-            println(it)
             val dst =
                 transformInvocation.outputProvider.getContentLocation(it.absolutePath, outputTypes, scopes, Format.JAR)
-            println("-> $dst")
             dst.delete()
             it.copyTo(dst)
         }
@@ -118,35 +121,45 @@ class LogALotTransformer(
 
     @Suppress("NestedBlockDepth")
     private fun transformClass(clazz: CtClass) {
-        val methods = clazz.methods
-        methods.forEach {
+        clazz.instrument(object : ExprEditor() {
+            override fun edit(f: FieldAccess) {
+                if (!f.field.hasAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")) return
 
-
-            val noBody = it.modifiers and Modifier.ABSTRACT == Modifier.ABSTRACT ||
-                    it.modifiers and Modifier.NATIVE == Modifier.NATIVE
-            if (!noBody && it.hasAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")) {
-                if (it.parameterTypes.isNotEmpty()) {
-                    it.insertBefore(
-                        "{net.grandcentrix.gradle.logalot.runtime.LogALot.log(\"${it.name} (\"+\$1+\")\");}"
+                if (f.isReader) {
+                    f.replace(
+                        """{
+                            ${'$'}_ = ${'$'}0.${f.fieldName};
+                            net.grandcentrix.gradle.logalot.runtime.LogALot.log("read field ${f.className}.${f.fieldName}, value is "+${'$'}_);
+                        }""".trimMargin()
                     )
                 } else {
-                    it.insertBefore(
-                        "{net.grandcentrix.gradle.logalot.runtime.LogALot.log(\"${it.name} no param  \");}"
+                    f.replace(
+                        """{
+                            ${'$'}0.${f.fieldName} = ${'$'}1;
+                            net.grandcentrix.gradle.logalot.runtime.LogALot.log("write field ${f.className}.${f.fieldName}, new value is "+${'$'}1);
+                        }""".trimMargin()
                     )
                 }
             }
+        })
 
+        val methods = clazz.declaredMethods
+        methods.forEach { method ->
+            val noBody = method.modifiers and Modifier.ABSTRACT == Modifier.ABSTRACT ||
+                    method.modifiers and Modifier.NATIVE == Modifier.NATIVE
+            if (!noBody && method.hasAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")) {
+                val params = Array<String>(method.parameterTypes.size) { "${'$'}${it + 1}" }.joinToString("""+","+""")
+                if (params.isEmpty()) {
+                    method.insertBefore(
+                        """{net.grandcentrix.gradle.logalot.runtime.LogALot.log("${clazz.name}.${method.name}()");}"""
+                    )
+                } else {
+                    method.insertBefore(
+                        """{net.grandcentrix.gradle.logalot.runtime.LogALot.log("${clazz.name}.${method.name}("+$params+")");}"""
+                    )
+                }
+            }
         }
     }
 
-}
-
-private fun CtMethod.hasAnnotation(name: String): Boolean =
-    runWithIgnoredExceptions { availableAnnotations.find { it.toString() == name } != null } == true
-
-@Suppress("TooGenericExceptionCaught")
-private fun <R> runWithIgnoredExceptions(block: () -> R): R? = try {
-    block()
-} catch (t: Throwable) {
-    null
 }
