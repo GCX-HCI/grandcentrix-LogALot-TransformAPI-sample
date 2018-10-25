@@ -1,0 +1,38 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
+apply plugin: 'java-library'
+apply plugin: 'maven'
+
+project.group = "net.grandcentrix.gradle.logalot"
+project.version = "0.0.1"
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7"
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file:///$projectDir/../build/local_repo")
+        }
+    }
+}
+
+sourceCompatibility = "7"
+targetCompatibility = "7"
+repositories {
+    maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
+    mavenCentral()
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
