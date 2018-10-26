@@ -120,7 +120,6 @@ class LogALotTransformer(
     }
 
     // TODO use $proceed and $$ , see http://www.javassist.org/tutorial/tutorial2.html
-    @Suppress("NestedBlockDepth")
     private fun transformClass(clazz: CtClass) {
         clazz.instrument(object : ExprEditor() {
             override fun edit(f: FieldAccess) {
