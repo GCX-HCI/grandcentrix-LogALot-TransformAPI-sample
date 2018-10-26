@@ -119,6 +119,7 @@ class LogALotTransformer(
         }
     }
 
+    // TODO use $proceed and $$ , see http://www.javassist.org/tutorial/tutorial2.html
     @Suppress("NestedBlockDepth")
     private fun transformClass(clazz: CtClass) {
         clazz.instrument(object : ExprEditor() {
@@ -130,14 +131,14 @@ class LogALotTransformer(
                         """{
                             ${'$'}_ = ${'$'}0.${f.fieldName};
                             net.grandcentrix.gradle.logalot.runtime.LogALot.log("read field ${f.className}.${f.fieldName}, value is "+${'$'}_);
-                        }""".trimMargin()
+                        }"""
                     )
                 } else {
                     f.replace(
                         """{
                             ${'$'}0.${f.fieldName} = ${'$'}1;
                             net.grandcentrix.gradle.logalot.runtime.LogALot.log("write field ${f.className}.${f.fieldName}, new value is "+${'$'}1);
-                        }""".trimMargin()
+                        }"""
                     )
                 }
             }
