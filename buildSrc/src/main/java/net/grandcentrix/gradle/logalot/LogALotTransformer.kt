@@ -10,7 +10,6 @@ import javassist.ClassPool
 import javassist.CtClass
 import javassist.expr.ExprEditor
 import javassist.expr.FieldAccess
-import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import java.io.File
 import java.lang.reflect.Modifier
@@ -19,7 +18,6 @@ import java.lang.reflect.Modifier
  * The transformer.
  */
 class LogALotTransformer(
-    private val project: Project,
     private val android: BaseExtension,
     private val extension: LogALotExtension,
     private val logger: Logger
@@ -47,7 +45,7 @@ class LogALotTransformer(
         }
 
         val variant = transformInvocation.context.variantName
-        if (extension.applyFor?.find { variant.endsWith(it, true) } == null) return
+        if (extension.applyFor?.find { variant.endsWith(it, true) } == null) return // WRONG - need to copy over
 
         val androidJar = "${android.sdkDirectory.absolutePath}/platforms/${android.compileSdkVersion}/android.jar"
 

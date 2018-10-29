@@ -23,7 +23,7 @@ open class LogALotPlugin : Plugin<Project> {
 
         @Suppress("UnsafeCast")
         val android = target.extensions.findByName("android") as BaseExtension
-        android.registerTransform(LogALotTransformer(target, android, extension, target.logger))
+        android.registerTransform(LogALotTransformer(android, extension, target.logger))
 
         target.dependencies.add("implementation", "net.grandcentrix.gradle.logalot:runtime:0.0.1")
     }
