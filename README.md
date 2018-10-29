@@ -11,6 +11,7 @@ Here I use it to emit logs for methods/functions and fields annotated with a cus
 - http://tools.android.com/tech-docs/new-build-system/transform-api
 - https://vincent.bernat.ch/en/blog/2016-android-build-time-patch
 - https://afterecho.uk/blog/create-a-standalone-gradle-plugin-for-android-part-4-the-transform-api.html
+- http://www.javassist.org
 
 # How it generally works
 

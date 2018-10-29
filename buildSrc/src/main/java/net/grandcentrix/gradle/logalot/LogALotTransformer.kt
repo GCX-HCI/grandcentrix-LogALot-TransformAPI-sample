@@ -45,7 +45,7 @@ class LogALotTransformer(
         }
 
         val variant = transformInvocation.context.variantName
-        if (extension.applyFor?.find { variant.endsWith(it, true) } == null) return // WRONG - need to copy over
+        val applyTransform = extension.applyFor?.find { variant.endsWith(it, true) } != null
 
         val androidJar = "${android.sdkDirectory.absolutePath}/platforms/${android.compileSdkVersion}/android.jar"
 
@@ -91,7 +91,12 @@ class LogALotTransformer(
                 externalDepsJars.forEach { pool.insertClassPath(it.absolutePath) }
                 externalDepsDirs.forEach { pool.insertClassPath(it.absolutePath) }
 
-                transformInput(inputDirectory, outputDir, pool)
+                if (applyTransform) {
+                    transformInput(inputDirectory, outputDir, pool)
+                } else {
+                    outputDir.deleteRecursively()
+                    inputDirectory.file.copyTo(outputDir)
+                }
             }
         }
 
@@ -117,7 +122,6 @@ class LogALotTransformer(
         }
     }
 
-    // TODO use $proceed and $$ , see http://www.javassist.org/tutorial/tutorial2.html
     private fun transformClass(clazz: CtClass) {
         clazz.instrument(object : ExprEditor() {
             override fun edit(f: FieldAccess) {
@@ -127,14 +131,14 @@ class LogALotTransformer(
                     f.replace(
                         """{
                             ${'$'}_ = ${'$'}0.${f.fieldName};
-                            net.grandcentrix.gradle.logalot.runtime.LogALot.log("read field ${f.className}.${f.fieldName}, value is "+${'$'}_);
+                            net.grandcentrix.gradle.logalot.runtime.LogALot.logFieldRead("${f.className}","${f.fieldName}", "${clazz.name}", ${f.lineNumber}, (${'$'}w)${'$'}_);
                         }"""
                     )
                 } else {
                     f.replace(
                         """{
                             ${'$'}0.${f.fieldName} = ${'$'}1;
-                            net.grandcentrix.gradle.logalot.runtime.LogALot.log("write field ${f.className}.${f.fieldName}, new value is "+${'$'}1);
+                            net.grandcentrix.gradle.logalot.runtime.LogALot.logFieldWrite("${f.className}","${f.fieldName}", "${clazz.name}", ${f.lineNumber}, (${'$'}w)${'$'}1);
                         }"""
                     )
                 }
@@ -145,16 +149,10 @@ class LogALotTransformer(
             val noBody = method.modifiers and Modifier.ABSTRACT == Modifier.ABSTRACT ||
                     method.modifiers and Modifier.NATIVE == Modifier.NATIVE
             if (!noBody && method.hasAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")) {
-                val params = Array<String>(method.parameterTypes.size) { "${'$'}${it + 1}" }.joinToString("""+","+""")
-                if (params.isEmpty()) {
-                    method.insertBefore(
-                        """{net.grandcentrix.gradle.logalot.runtime.LogALot.log("${clazz.name}.${method.name}()");}"""
-                    )
-                } else {
-                    method.insertBefore(
-                        """{net.grandcentrix.gradle.logalot.runtime.LogALot.log("${clazz.name}.${method.name}("+$params+")");}"""
-                    )
-                }
+                method.insertBefore(
+                    """{net.grandcentrix.gradle.logalot.runtime.LogALot.logMethodInvocation("${clazz.name}","${method.name}",${'$'}args);}"""
+                )
+
             }
         }
     }

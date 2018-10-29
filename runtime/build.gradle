@@ -1,15 +1,23 @@
-plugins {
-    id 'org.jetbrains.kotlin.jvm'
-}
-apply plugin: 'java-library'
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply plugin: 'maven'
 
 project.group = "net.grandcentrix.gradle.logalot"
 project.version = "0.0.1"
 
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        minSdkVersion 26
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7"
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
 }
 
 uploadArchives {
@@ -25,14 +33,4 @@ targetCompatibility = "7"
 repositories {
     maven { url 'http://dl.bintray.com/kotlin/kotlin-eap' }
     mavenCentral()
-}
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
 }

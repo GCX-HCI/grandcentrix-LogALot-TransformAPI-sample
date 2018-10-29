@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Button
-import grandcentrix.net.logalot.R
 import net.grandcentrix.gradle.logalot.annotations.LogALot
 
 /**
@@ -31,5 +30,14 @@ class MainActivity : AppCompatActivity() {
     private fun doSomething(str: String, int: Int) {
         myField++
         findViewById<Button>(R.id.button).text = "Current $myField"
+        globalFun(myField)
     }
+}
+
+@LogALot
+private var globalString = "Hello"
+
+@LogALot
+private fun globalFun(i: Int) {
+    globalString = "Global $i"
 }
