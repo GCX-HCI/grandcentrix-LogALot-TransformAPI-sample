@@ -18,10 +18,16 @@ class MainActivity : AppCompatActivity() {
     @LogALot
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        noArgMethod()
         setContentView(R.layout.activity_main)
         findViewById<Button>(R.id.button).setOnClickListener {
             doSomething("withAParam", 42)
         }
+    }
+
+    @LogALot
+    private fun noArgMethod() {
+        // does nothing
     }
 
     @SuppressLint("SetTextI18n")

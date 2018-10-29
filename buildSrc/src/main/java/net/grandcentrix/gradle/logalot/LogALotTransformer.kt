@@ -94,8 +94,7 @@ class LogALotTransformer(
                 if (applyTransform) {
                     transformInput(inputDirectory, outputDir, pool)
                 } else {
-                    outputDir.deleteRecursively()
-                    inputDirectory.file.copyTo(outputDir)
+                    inputDirectory.file.copyRecursively(outputDir, true)
                 }
             }
         }
