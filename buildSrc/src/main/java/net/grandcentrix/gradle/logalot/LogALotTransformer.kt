@@ -27,8 +27,8 @@ class LogALotTransformer(
 
     override fun getName(): String = "LogALot"
 
-    override fun getInputTypes(): MutableSet<QualifiedContent.ContentType> =
-        setOf(QualifiedContent.DefaultContentType.CLASSES).toMutableSet()
+    override fun getInputTypes(): Set<QualifiedContent.ContentType> =
+        setOf(QualifiedContent.DefaultContentType.CLASSES)
 
     override fun isIncremental(): Boolean = false
 
@@ -41,7 +41,6 @@ class LogALotTransformer(
             QualifiedContent.Scope.SUB_PROJECTS
         ).toMutableSet()
 
-    @Suppress("ComplexMethod", "NestedBlockDepth")
     override fun transform(transformInvocation: TransformInvocation) {
         if (extension.applyFor?.isEmpty() != false) {
             logger.warn("No variants to apply LogALot configured")
@@ -57,8 +56,8 @@ class LogALotTransformer(
         val externalDepsDirs = mutableListOf<File>()
 
         transformInvocation.referencedInputs.forEach { transformInput ->
-            transformInput.jarInputs.forEach { externalDepsJars += it.file; println(it) }
-            transformInput.directoryInputs.forEach { externalDepsDirs += it.file; println(it) }
+            externalDepsJars += transformInput.jarInputs.map { it.file }
+            externalDepsDirs += transformInput.directoryInputs.map { it.file }
         }
 
         val outputDir =
@@ -101,14 +100,9 @@ class LogALotTransformer(
         outputDir: File,
         pool: ClassPool
     ) {
-        inputDirectory.file.walkTopDown().iterator().forEach { originalClassFile ->
+        inputDirectory.file.walkTopDown().forEach { originalClassFile ->
             if (originalClassFile.isFile && originalClassFile.path.endsWith(".class")) {
-                val classname =
-                    originalClassFile.relativeTo(inputDirectory.file)
-                        .path
-                        .replace("/", ".")
-                        .replace(".class", "")
-
+                val classname = originalClassFile.relativeTo(inputDirectory.file).toClassname()
                 val clazz = pool.get(classname)
                 transformClass(clazz)
                 clazz.writeFile(outputDir.absolutePath)
@@ -124,16 +118,16 @@ class LogALotTransformer(
                 if (f.isReader) {
                     f.replace(
                         """{
-                            ${'$'}_ = ${'$'}0.${f.fieldName};
-                            net.grandcentrix.gradle.logalot.runtime.LogALot.logFieldRead("${f.className}","${f.fieldName}", "${clazz.name}", ${f.lineNumber}, (${'$'}w)${'$'}_);
-                        }"""
+                            @_ = @0.${f.fieldName};
+                            net.grandcentrix.gradle.logalot.runtime.LogALot.logFieldRead("${f.className}","${f.fieldName}", "${clazz.name}", ${f.lineNumber}, (@w)@_);
+                        }""".toJavassist()
                     )
                 } else {
                     f.replace(
                         """{
-                            ${'$'}0.${f.fieldName} = ${'$'}1;
-                            net.grandcentrix.gradle.logalot.runtime.LogALot.logFieldWrite("${f.className}","${f.fieldName}", "${clazz.name}", ${f.lineNumber}, (${'$'}w)${'$'}1);
-                        }"""
+                            @0.${f.fieldName} = @1;
+                            net.grandcentrix.gradle.logalot.runtime.LogALot.logFieldWrite("${f.className}","${f.fieldName}", "${clazz.name}", ${f.lineNumber}, (@w)@1);
+                        }""".toJavassist()
                     )
                 }
             }
@@ -144,11 +138,16 @@ class LogALotTransformer(
                     method.modifiers and Modifier.NATIVE == Modifier.NATIVE
             if (!noBody && method.hasAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")) {
                 method.insertBefore(
-                    """{net.grandcentrix.gradle.logalot.runtime.LogALot.logMethodInvocation("${clazz.name}","${method.name}",${'$'}args);}"""
+                    """{net.grandcentrix.gradle.logalot.runtime.LogALot.logMethodInvocation("${clazz.name}","${method.name}",@args);}""".toJavassist()
                 )
 
             }
         }
     }
-
 }
+
+private fun String.toJavassist(): String = replace("@", "${'$'}")
+
+private fun File.toClassname(): String =
+    path.replace("/", ".")
+        .replace(".class", "")

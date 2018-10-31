@@ -14,7 +14,6 @@ class MainActivity : AppCompatActivity() {
     @LogALot
     private var myField = 0
 
-    @Suppress("MagicNumber")
     @LogALot
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +30,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("SetTextI18n")
-    @Suppress("UnusedPrivateMember")
     @LogALot
     private fun doSomething(str: String, int: Int) {
         myField++
