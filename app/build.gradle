@@ -1,9 +1,7 @@
-import net.grandcentrix.gradle.logalot.LogALotPlugin
-
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: LogALotPlugin
+apply plugin: 'net.grandcentrix.logalot'
 
 android {
     compileSdkVersion 28
