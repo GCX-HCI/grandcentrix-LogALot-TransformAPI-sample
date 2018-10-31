@@ -96,7 +96,7 @@ class LogALotTransformer(
         pool: ClassPool
     ) {
         inputDirectory.file.walkTopDown().forEach { originalClassFile ->
-            if (originalClassFile.isFile && originalClassFile.path.endsWith(".class")) {
+            if (originalClassFile.isClassfile()) {
                 val classname = originalClassFile.relativeTo(inputDirectory.file).toClassname()
                 val clazz = pool.get(classname)
                 transformClass(clazz)
@@ -145,3 +145,5 @@ private fun File.toClassname(): String =
     path.replace("/", ".")
         .replace("\\", ".")
         .replace(".class", "")
+
+private fun File.isClassfile(): Boolean = isFile && path.endsWith(".class")
