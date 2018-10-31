@@ -22,7 +22,7 @@ open class LogALotPlugin : Plugin<Project> {
         val extension = target.extensions.create("logALot", LogALotExtension::class.java)
 
         val android = target.extensions.findByName("android") as BaseExtension
-        android.registerTransform(LogALotTransformer(android, extension, target.logger))
+        android.registerTransform(LogALotTransformer(android, extension))
     }
 
 }

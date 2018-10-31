@@ -12,39 +12,34 @@ import javassist.NotFoundException
 import javassist.expr.ExprEditor
 import javassist.expr.FieldAccess
 import org.gradle.api.GradleException
-import org.gradle.api.logging.Logger
 import java.io.File
-import java.lang.reflect.Modifier
 
 /**
  * The transformer.
  */
 class LogALotTransformer(
     private val android: BaseExtension,
-    private val extension: LogALotExtension,
-    private val logger: Logger
+    private val extension: LogALotExtension
 ) : Transform() {
 
     override fun getName(): String = "LogALot"
 
-    override fun getInputTypes(): Set<QualifiedContent.ContentType> =
-        setOf(QualifiedContent.DefaultContentType.CLASSES)
+    override fun getInputTypes(): Set<QualifiedContent.ContentType> = setOf(QualifiedContent.DefaultContentType.CLASSES)
 
     override fun isIncremental(): Boolean = false
 
     override fun getScopes(): MutableSet<in QualifiedContent.Scope> =
-        setOf(QualifiedContent.Scope.PROJECT).toMutableSet()
+        mutableSetOf(QualifiedContent.Scope.PROJECT)
 
     override fun getReferencedScopes(): MutableSet<in QualifiedContent.Scope> =
-        setOf(
+        mutableSetOf(
             QualifiedContent.Scope.EXTERNAL_LIBRARIES,
             QualifiedContent.Scope.SUB_PROJECTS
-        ).toMutableSet()
+        )
 
     override fun transform(transformInvocation: TransformInvocation) {
         if (extension.applyFor?.isEmpty() != false) {
-            logger.warn("No variants to apply LogALot configured")
-            return
+            throw GradleException("No variants to apply LogALot configured")
         }
 
         val variant = transformInvocation.context.variantName
@@ -134,9 +129,7 @@ class LogALotTransformer(
         })
 
         clazz.declaredMethods.forEach { method ->
-            val noBody = method.modifiers and Modifier.ABSTRACT == Modifier.ABSTRACT ||
-                    method.modifiers and Modifier.NATIVE == Modifier.NATIVE
-            if (!noBody && method.hasAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")) {
+            if (!method.isEmpty && method.hasAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")) {
                 method.insertBefore(
                     """{net.grandcentrix.gradle.logalot.runtime.LogALot.logMethodInvocation("${clazz.name}","${method.name}",@args);}""".toJavassist()
                 )
@@ -150,4 +143,5 @@ private fun String.toJavassist(): String = replace("@", "${'$'}")
 
 private fun File.toClassname(): String =
     path.replace("/", ".")
+        .replace("\\", ".")
         .replace(".class", "")
