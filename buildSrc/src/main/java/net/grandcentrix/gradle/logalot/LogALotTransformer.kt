@@ -33,8 +33,10 @@ class LogALotTransformer(
     override fun isIncremental(): Boolean = false
 
     override fun getScopes(): MutableSet<in QualifiedContent.Scope> =
+        setOf(QualifiedContent.Scope.PROJECT).toMutableSet()
+
+    override fun getReferencedScopes(): MutableSet<in QualifiedContent.Scope> =
         setOf(
-            QualifiedContent.Scope.PROJECT,
             QualifiedContent.Scope.EXTERNAL_LIBRARIES,
             QualifiedContent.Scope.SUB_PROJECTS
         ).toMutableSet()
@@ -54,33 +56,15 @@ class LogALotTransformer(
         val externalDepsJars = mutableListOf<File>()
         val externalDepsDirs = mutableListOf<File>()
 
-        transformInvocation.inputs.forEach { transformInput ->
-            transformInput.jarInputs.forEach { externalDepsJars += it.file }
-            transformInput.directoryInputs.forEach { externalDepsDirs += it.file }
+        transformInvocation.referencedInputs.forEach { transformInput ->
+            transformInput.jarInputs.forEach { externalDepsJars += it.file; println(it) }
+            transformInput.directoryInputs.forEach { externalDepsDirs += it.file; println(it) }
         }
 
         val outputDir =
             transformInvocation.outputProvider.getContentLocation("classes", outputTypes, scopes, Format.DIRECTORY)
         outputDir.deleteRecursively()
         outputDir.mkdirs()
-
-        externalDepsJars.forEach {
-            val dst =
-                transformInvocation.outputProvider.getContentLocation(it.absolutePath, outputTypes, scopes, Format.JAR)
-            dst.delete()
-            it.copyTo(dst)
-        }
-        externalDepsDirs.forEach {
-            val dst =
-                transformInvocation.outputProvider.getContentLocation(
-                    it.absolutePath,
-                    outputTypes,
-                    scopes,
-                    Format.DIRECTORY
-                )
-            dst.deleteRecursively()
-            it.copyRecursively(outputDir)
-        }
 
         transformInvocation.inputs.forEach { transformInput ->
             transformInput.directoryInputs.forEach { inputDirectory ->
@@ -97,7 +81,10 @@ class LogALotTransformer(
                     try {
                         pool.get("net.grandcentrix.gradle.logalot.runtime.LogALot")
                     } catch (nfe: NotFoundException) {
-                        throw GradleException("You have to add the runtime dependency at least for the variants you enabled LogALot for.")
+                        throw GradleException(
+                            "You have to add the runtime dependency at least for the variants you enabled LogALot for.",
+                            nfe
+                        )
                     }
 
                     transformInput(inputDirectory, outputDir, pool)
