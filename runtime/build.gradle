@@ -1,14 +1,10 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'maven'
-
-project.group = "net.grandcentrix.gradle.logalot"
-project.version = "0.0.1"
 
 android {
     compileSdkVersion 28
     defaultConfig {
-        minSdkVersion 26
+        minSdkVersion 14
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -18,14 +14,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file:///$projectDir/../build/local_repo")
-        }
-    }
 }
 
 sourceCompatibility = "7"
