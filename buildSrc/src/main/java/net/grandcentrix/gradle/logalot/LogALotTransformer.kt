@@ -8,8 +8,10 @@ import com.android.build.api.transform.TransformInvocation
 import com.android.build.gradle.BaseExtension
 import javassist.ClassPool
 import javassist.CtClass
+import javassist.NotFoundException
 import javassist.expr.ExprEditor
 import javassist.expr.FieldAccess
+import org.gradle.api.GradleException
 import org.gradle.api.logging.Logger
 import java.io.File
 import java.lang.reflect.Modifier
@@ -37,7 +39,7 @@ class LogALotTransformer(
             QualifiedContent.Scope.SUB_PROJECTS
         ).toMutableSet()
 
-    @Suppress("ComplexMethod")
+    @Suppress("ComplexMethod", "NestedBlockDepth")
     override fun transform(transformInvocation: TransformInvocation) {
         if (extension.applyFor?.isEmpty() != false) {
             logger.warn("No variants to apply LogALot configured")
@@ -92,6 +94,12 @@ class LogALotTransformer(
                 externalDepsDirs.forEach { pool.insertClassPath(it.absolutePath) }
 
                 if (applyTransform) {
+                    try {
+                        pool.get("net.grandcentrix.gradle.logalot.runtime.LogALot")
+                    } catch (nfe: NotFoundException) {
+                        throw GradleException("You have to add the runtime dependency at least for the variants you enabled LogALot for.")
+                    }
+
                     transformInput(inputDirectory, outputDir, pool)
                 } else {
                     inputDirectory.file.copyRecursively(outputDir, true)
