@@ -1,4 +1,5 @@
 @file:JvmName("LogALot")
+@file:Suppress("UNUSED")
 
 package net.grandcentrix.gradle.logalot.runtime
 
