@@ -28,7 +28,7 @@ open class LogALotPlugin : Plugin<Project> {
 }
 
 /**
- * The extenstion.
+ * The extension.
  */
 open class LogALotExtension {
     var applyFor: Array<String>? = null

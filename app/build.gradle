@@ -6,7 +6,7 @@ apply plugin: 'net.grandcentrix.logalot'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "grandcentrix.net.logalot"
+        applicationId "net.grandcentrix.logalot"
         minSdkVersion 26
         targetSdkVersion 28
         versionCode 1
@@ -43,7 +43,7 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 
     implementation project(":annotations")
-    implementation project(":runtime")
+    debugImplementation project(":runtime")
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
