@@ -25,9 +25,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @LogALot
-    private fun noArgMethod() {
-        // does nothing
-    }
+    private fun noArgMethod(): String = "return something from here"
 
     @SuppressLint("SetTextI18n")
     @LogALot

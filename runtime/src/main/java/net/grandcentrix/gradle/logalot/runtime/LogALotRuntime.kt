@@ -7,7 +7,7 @@ import android.util.Log
 /**
  * Log method invocation.
  */
-fun logMethodInvocation(clazz: String, methodName: String, vararg parameters: Any) {
+fun logMethodInvocation(clazz: String, methodName: String, vararg parameters: Any?) {
     if (parameters.isEmpty()) {
         Log.d(TAG, "Invoked $clazz.$methodName")
     } else {
@@ -16,9 +16,20 @@ fun logMethodInvocation(clazz: String, methodName: String, vararg parameters: An
 }
 
 /**
+ * Log method exit.
+ */
+fun logMethodExit(clazz: String, methodName: String, resultIsVoid: Boolean, result: Any?) {
+    if (!resultIsVoid && result != null) {
+        Log.d(TAG, "Exiting $clazz.$methodName with result: $result")
+    } else {
+        Log.d(TAG, "Exiting $clazz.$methodName without result")
+    }
+}
+
+/**
  * Log field write.
  */
-fun logFieldWrite(clazz: String, fieldName: String, where: String, whereLine: Int, value: Any) {
+fun logFieldWrite(clazz: String, fieldName: String, where: String, whereLine: Int, value: Any?) {
     Log.d(TAG, "write field $clazz.$fieldName in $where:$whereLine values is $value")
 }
 

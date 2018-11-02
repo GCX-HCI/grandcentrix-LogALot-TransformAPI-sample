@@ -134,6 +134,10 @@ class LogALotTransformer(
                     """{net.grandcentrix.gradle.logalot.runtime.LogALot.logMethodInvocation("${clazz.name}","${method.name}",@args);}""".toJavassist()
                 )
 
+                method.insertAfter(
+                    """{net.grandcentrix.gradle.logalot.runtime.LogALot.logMethodExit("${clazz.name}","${method.name}",${method.returnType.name == "void"},(java.lang.Object)@_);}""".toJavassist(),
+                    true
+                )
             }
         }
     }

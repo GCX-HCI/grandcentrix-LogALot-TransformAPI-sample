@@ -65,3 +65,6 @@ This way we get them into the transform as referenced input but don't have to co
 
 To make things easier for now the transform is not incremental.
 Enabling incremental transformation would be a bit tricky for this transformer since in that case you could add the annotation to a public field and that means we have to process also the untouched classes since they could contain a field access to such a field.
+
+One important thing to safe you a lot of trouble: For some reasons Javassist often sees old versions of the runtime which is a problem if you add methods or change method signatures!
+The solution is: Kill the Gradle daemon (gradlew --stop) after changing the runtime. (Or don't built via IDE and always use --no-daemon command line switch).
