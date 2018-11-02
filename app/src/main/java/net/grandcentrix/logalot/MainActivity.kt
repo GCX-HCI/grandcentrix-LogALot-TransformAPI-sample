@@ -18,6 +18,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         noArgMethod()
+
+        try {
+            thrower()
+        } catch (e: Throwable) {
+            // nothing here
+        }
+
         setContentView(R.layout.activity_main)
         findViewById<Button>(R.id.button).setOnClickListener {
             doSomething("withAParam", 42)
@@ -25,8 +32,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     @LogALot
-    private fun noArgMethod(): String = "return something from here"
+    private fun noArgMethod(): String = "MyReturnValue"
 
+    @LogALot
+    private fun thrower() {
+        throw Exception("Gotcha!")
+    }
+
+    @Suppress("UNUSED_PARAMETER")
     @SuppressLint("SetTextI18n")
     @LogALot
     private fun doSomething(str: String, int: Int) {

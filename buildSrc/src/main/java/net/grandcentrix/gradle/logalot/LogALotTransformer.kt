@@ -134,6 +134,12 @@ class LogALotTransformer(
                     """{net.grandcentrix.gradle.logalot.runtime.LogALot.logMethodInvocation("${clazz.name}","${method.name}",@args);}""".toJavassist()
                 )
 
+                method.addCatch(
+                    """{net.grandcentrix.gradle.logalot.runtime.LogALot.logMethodThrows("${clazz.name}","${method.name}",@e);
+                        throw @e;}""".trimMargin().toJavassist(),
+                    clazz.classPool.get("java.lang.Throwable")
+                )
+
                 method.insertAfter(
                     """{net.grandcentrix.gradle.logalot.runtime.LogALot.logMethodExit("${clazz.name}","${method.name}",${method.returnType.name == "void"},(java.lang.Object)@_);}""".toJavassist(),
                     true

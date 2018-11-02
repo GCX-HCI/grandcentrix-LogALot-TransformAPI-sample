@@ -27,6 +27,13 @@ fun logMethodExit(clazz: String, methodName: String, resultIsVoid: Boolean, resu
 }
 
 /**
+ * Log method exit with exception.
+ */
+fun logMethodThrows(clazz: String, methodName: String, throwable: Throwable) {
+    Log.d(TAG, "Exiting $clazz.$methodName abnormally with $throwable")
+}
+
+/**
  * Log field write.
  */
 fun logFieldWrite(clazz: String, fieldName: String, where: String, whereLine: Int, value: Any?) {
