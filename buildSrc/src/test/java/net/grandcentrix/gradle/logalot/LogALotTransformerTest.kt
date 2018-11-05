@@ -269,7 +269,6 @@ class LogALotTransformerTest {
                 val classBytesCache = mutableMapOf<String, ByteArray>()
 
                 override fun tryLoadType(typeNameOrPath: String, buffer: Buffer): Boolean {
-                    println(typeNameOrPath)
                     try {
                         val className = typeNameOrPath.replace("/", ".")
                         val bytes = classBytesCache[className] ?: originalClassPool[className].toBytecode()
