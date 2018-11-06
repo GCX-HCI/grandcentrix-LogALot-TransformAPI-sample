@@ -4,7 +4,7 @@
 
 The [Transform API](http://tools.android.com/tech-docs/new-build-system/transform-api) is part of the Android build system since version 1.5 and allows you to hook into the build to modify code and Java resources.
 
-Here I use it to emit logs for methods/functions and fields annotated with a custom annotation.
+Here I use it to emit logs for methods/functions and access to fields annotated with a custom annotation.
 
 # Resources
 
@@ -28,7 +28,7 @@ The heavy lifting happens in `transform`.
 
 You get an instance of `TransformInvocation` which offers everything you need for your actual transform.
 
-Besides a context (e.g. the variant, a logger etc.) you get the inputs to your transform and an output provider you need to use to know where to put your transformed files.
+Besides a context (the variant, a LoggingManager etc.) you get the inputs to your transform and an output provider you need to use to know where to put your transformed files.
 
 It's worth to note that you might not only get class files but for some scopes you will likely get JARs - if you want to modify them you have to take that into account.
 
@@ -55,9 +55,9 @@ The actual byte code manipulation is pretty straight forward thanks to the high 
 While logging a method invocation is done by just adding a `before` block to the method itself it's a bit trickier to do that for field access:
 Since there is no code run when accessing a field I instrument every read and write of the annotated fields in the methods which actually perform that operation.
 
-The transform only touches files from the `PROJECT` scope. Not from external dependencies or sub modules.
+The transform only touches files from the `PROJECT` scope. Not from external dependencies or sub modules. That's not a limitation of the Transform API but a design decision.
 
-Since Javassist needs all the referenced classes of a class you want to modify on it's own classpath we need the scoped EXTERNAL_LIBRARIES and SUB_PROJECTS.
+Since Javassist needs all the referenced classes of a class you want to modify on it's own classpath we need the scopes EXTERNAL_LIBRARIES and SUB_PROJECTS.
 We could have added them to the requested scopes but in that case we need to copy them in order to get them into the final APK. That would work.
 
 However I do it differently: I request the EXTERNAL_LIBRARIES and SUB_PROJECTS scopes as referenced scopes.
@@ -66,5 +66,9 @@ This way we get them into the transform as referenced input but don't have to co
 To make things easier for now the transform is not incremental.
 Enabling incremental transformation would be a bit tricky for this transformer since in that case you could add the annotation to a public field and that means we have to process also the untouched classes since they could contain a field access to such a field.
 
-One important thing to safe you a lot of trouble: For some reasons Javassist often sees old versions of the runtime which is a problem if you add methods or change method signatures!
+One important hint to safe you a lot of trouble: For some reasons Javassist often sees old versions of the runtime which is a problem if you add methods or change method signatures!
 The solution is: Kill the Gradle daemon (gradlew --stop) after changing the runtime. (Or don't built via IDE and always use --no-daemon command line switch).
+
+There are tests for the plugin and the transform itself. Since we are using buildSrc the tests consequently also live in buildSrc. Downside of this is that importing the project into the IDE will fail if there are failing tests.
+
+The tests are low level unit tests using MockK and Kluent but don't use TestKit. Most challenging part in testing this is to test the actual byte code modifications.
