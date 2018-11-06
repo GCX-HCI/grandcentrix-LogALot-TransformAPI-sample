@@ -262,34 +262,9 @@ class LogALotTransformerTest {
         verify(exactly = 0) { directoryInputFile.copyRecursively(contentLocation, true) }
         writtenClazzes.size shouldBe 2
 
-        val settings = DecompilerSettings().apply {
-            formattingOptions = JavaFormattingOptions.createDefault()
+        val decompiledClazz = decompile(originalClassPool)
 
-            typeLoader = object : InputTypeLoader() {
-                val classBytesCache = mutableMapOf<String, ByteArray>()
-
-                override fun tryLoadType(typeNameOrPath: String, buffer: Buffer): Boolean {
-                    try {
-                        val className = typeNameOrPath.replace("/", ".")
-                        val bytes = classBytesCache[className] ?: originalClassPool[className].toBytecode()
-                        classBytesCache[className] = bytes
-                        buffer.reset(bytes.size)
-                        bytes.forEach { buffer.writeByte(it.toInt()) }
-                        buffer.position(0)
-                    } catch (nfe: NotFoundException) {
-                        return false
-                    }
-                    return true
-                }
-            }
-        }
-
-
-        val osw = StringWriter()
-        Decompiler.decompile("pkg/Input", PlainTextOutput(osw), settings)
-        osw.flush()
-
-        osw.toString().removeWhitespaces() shouldBeEqualTo """
+        decompiledClazz.removeWhitespaces() shouldBeEqualTo """
             package pkg;
 
             import net.grandcentrix.gradle.logalot.annotations.*;
@@ -324,6 +299,18 @@ class LogALotTransformerTest {
     }
 }
 
+private fun decompile(classPool: ClassPool): String {
+    val settings = DecompilerSettings().apply {
+        formattingOptions = JavaFormattingOptions.createDefault()
+        typeLoader = JavassistTypeLoader(classPool)
+    }
+
+    val osw = StringWriter()
+    Decompiler.decompile("pkg/Input", PlainTextOutput(osw), settings)
+    osw.flush()
+    return osw.toString()
+}
+
 private fun CtClass.makeAnnotation(annotationName: String): AnnotationsAttribute {
     val classFile = classFile
     val cPool = classFile.constPool
@@ -334,3 +321,21 @@ private fun CtClass.makeAnnotation(annotationName: String): AnnotationsAttribute
 }
 
 private fun String.removeWhitespaces(): String = replace(" ", "").replace("\n", "").replace("\r", "")
+
+private class JavassistTypeLoader(val classPool: ClassPool) : InputTypeLoader() {
+    val classBytesCache = mutableMapOf<String, ByteArray>()
+
+    override fun tryLoadType(typeNameOrPath: String, buffer: Buffer): Boolean {
+        try {
+            val className = typeNameOrPath.replace("/", ".")
+            val bytes = classBytesCache[className] ?: classPool[className].toBytecode()
+            classBytesCache[className] = bytes
+            buffer.reset(bytes.size)
+            bytes.forEach { buffer.writeByte(it.toInt()) }
+            buffer.position(0)
+        } catch (nfe: NotFoundException) {
+            return false
+        }
+        return true
+    }
+}
