@@ -79,7 +79,6 @@ class LogALotTransformerTest {
         every { baseExtension.sdkDirectory } returns sdkDir
         every { baseExtension.compileSdkVersion } returns "26"
 
-
         val context = mockk<Context>()
         every { context.variantName } returns "Release"
 
@@ -99,7 +98,6 @@ class LogALotTransformerTest {
         every { referencedInput.jarInputs } returns referencedJarInputs
         every { referencedInput.directoryInputs } returns referencedDirectoryInputs
         val referencedInputs = listOf(referencedInput)
-
 
         val contentLocation = mockk<File>()
         mockkStatic("kotlin.io.FilesKt__UtilsKt")
@@ -125,7 +123,6 @@ class LogALotTransformerTest {
         every { transformInvocation.outputProvider } returns outputProvider
         every { transformInvocation.inputs } returns transformInputs
 
-
         val mockClassPath = mockk<ClassPath>()
         mockkConstructor(ClassPool::class)
         every { anyConstructed<ClassPool>().insertClassPath(any<String>()) } returns mockClassPath
@@ -143,7 +140,6 @@ class LogALotTransformerTest {
         every { extension.applyFor } returns arrayOf("debug")
         every { baseExtension.sdkDirectory } returns sdkDir
         every { baseExtension.compileSdkVersion } returns "26"
-
 
         val context = mockk<Context>()
         every { context.variantName } returns "Debug"
@@ -165,7 +161,6 @@ class LogALotTransformerTest {
         every { referencedInput.directoryInputs } returns referencedDirectoryInputs
         val referencedInputs = listOf(referencedInput)
 
-
         val contentLocation = mockk<File>()
         mockkStatic("kotlin.io.FilesKt__UtilsKt")
         every { contentLocation.deleteRecursively() } returns true
@@ -174,7 +169,6 @@ class LogALotTransformerTest {
 
         val outputProvider = mockk<TransformOutputProvider>()
         every { outputProvider.getContentLocation("classes", any(), any(), Format.DIRECTORY) } returns contentLocation
-
 
         val classfile = mockk<File>()
         every { classfile.path } returns "/myinputdir/pkg/Input.class"
@@ -202,7 +196,6 @@ class LogALotTransformerTest {
         every { transformInvocation.referencedInputs } returns referencedInputs
         every { transformInvocation.outputProvider } returns outputProvider
         every { transformInvocation.inputs } returns transformInputs
-
 
         val originalClassPool = ClassPool()
         originalClassPool.appendSystemPath()
@@ -238,11 +231,14 @@ class LogALotTransformerTest {
             )
         )
 
+        // the annotation isn't needed to be present as a class in the pool
+
         val inputClazz = originalClassPool.makeClass("pkg.Input")
         inputClazz.addField(CtField.make("public int myfield = 0;", inputClazz))
         inputClazz.addMethod(CtMethod.make("public void something(){ myfield = myfield + 1; }", inputClazz))
 
-        val annotationAttribute = inputClazz.makeAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")
+        val annotationAttribute =
+            inputClazz.makeAnnotation("net.grandcentrix.gradle.logalot.annotations.LogALot")
         inputClazz.methods.forEach { it.methodInfo.addAttribute(annotationAttribute) }
         inputClazz.fields.forEach { it.fieldInfo.addAttribute(annotationAttribute) }
 
@@ -262,8 +258,7 @@ class LogALotTransformerTest {
         verify(exactly = 0) { directoryInputFile.copyRecursively(contentLocation, true) }
         writtenClazzes.size shouldBe 2
 
-        val decompiledClazz = decompile(originalClassPool)
-
+        val decompiledClazz = decompile("pkg.Input", originalClassPool)
         decompiledClazz.removeWhitespaces() shouldBeEqualTo """
             package pkg;
 
@@ -299,16 +294,16 @@ class LogALotTransformerTest {
     }
 }
 
-private fun decompile(classPool: ClassPool): String {
+private fun decompile(className: String, classPool: ClassPool): String {
     val settings = DecompilerSettings().apply {
         formattingOptions = JavaFormattingOptions.createDefault()
         typeLoader = JavassistTypeLoader(classPool)
     }
 
-    val osw = StringWriter()
-    Decompiler.decompile("pkg/Input", PlainTextOutput(osw), settings)
-    osw.flush()
-    return osw.toString()
+    val stringWriter = StringWriter()
+    Decompiler.decompile(className.replace(".", "/"), PlainTextOutput(stringWriter), settings)
+    stringWriter.flush()
+    return stringWriter.toString()
 }
 
 private fun CtClass.makeAnnotation(annotationName: String): AnnotationsAttribute {
