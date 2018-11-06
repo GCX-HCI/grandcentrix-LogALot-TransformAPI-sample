@@ -190,7 +190,6 @@ class LogALotTransformerTest {
         every { transformInput.directoryInputs } returns directoryInputs
         val transformInputs = listOf(transformInput)
 
-
         val transformInvocation = mockk<TransformInvocation>()
         every { transformInvocation.context } returns context
         every { transformInvocation.referencedInputs } returns referencedInputs
