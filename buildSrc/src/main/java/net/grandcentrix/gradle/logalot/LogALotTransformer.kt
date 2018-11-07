@@ -55,10 +55,13 @@ class LogALotTransformer(
             externalDepsDirs += transformInput.directoryInputs.map { it.file }
         }
 
-        val outputDir =
-            transformInvocation.outputProvider.getContentLocation("classes", outputTypes, scopes, Format.DIRECTORY)
-        outputDir.deleteRecursively()
-        outputDir.mkdirs()
+        transformInvocation.outputProvider.deleteAll()
+        val outputDir = transformInvocation.outputProvider.getContentLocation(
+            "classes",
+            outputTypes,
+            scopes,
+            Format.DIRECTORY
+        )
 
         transformInvocation.inputs.forEach { transformInput ->
             transformInput.directoryInputs.forEach { inputDirectory ->

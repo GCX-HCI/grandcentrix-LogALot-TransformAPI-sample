@@ -100,14 +100,13 @@ class LogALotTransformerTest {
         val referencedInputs = listOf(referencedInput)
 
         val contentLocation = mockk<File>()
-        mockkStatic("kotlin.io.FilesKt__UtilsKt")
-        every { contentLocation.deleteRecursively() } returns true
-        every { contentLocation.mkdirs() } returns true
 
         val outputProvider = mockk<TransformOutputProvider>()
+        every { outputProvider.deleteAll() } returns Unit
         every { outputProvider.getContentLocation("classes", any(), any(), Format.DIRECTORY) } returns contentLocation
 
         val directoryInputFile = mockk<File>()
+        mockkStatic("kotlin.io.FilesKt__UtilsKt")
         every { directoryInputFile.absolutePath } returns "/myinputdir"
         every { directoryInputFile.copyRecursively(any(), true) } returns true
         val directoryInput = mockk<DirectoryInput>()
@@ -162,12 +161,10 @@ class LogALotTransformerTest {
         val referencedInputs = listOf(referencedInput)
 
         val contentLocation = mockk<File>()
-        mockkStatic("kotlin.io.FilesKt__UtilsKt")
-        every { contentLocation.deleteRecursively() } returns true
-        every { contentLocation.mkdirs() } returns true
         every { contentLocation.absolutePath } returns "/output"
 
         val outputProvider = mockk<TransformOutputProvider>()
+        every { outputProvider.deleteAll() } returns Unit
         every { outputProvider.getContentLocation("classes", any(), any(), Format.DIRECTORY) } returns contentLocation
 
         val classfile = mockk<File>()
@@ -178,6 +175,7 @@ class LogALotTransformerTest {
         every { inputFiles.iterator() } returns inputFilesSequence.iterator()
 
         val directoryInputFile = mockk<File>()
+        mockkStatic("kotlin.io.FilesKt__UtilsKt")
         every { directoryInputFile.absolutePath } returns "/myinputdir"
         every { directoryInputFile.path } returns "/myinputdir"
         every { directoryInputFile.copyRecursively(any(), true) } returns true
