@@ -53,6 +53,6 @@ class MainActivity : AppCompatActivity() {
 private var globalString = "Hello"
 
 @LogALot
-private fun globalFun(i: Int) {
+fun globalFun(i: Int) {
     globalString = "Global $i"
 }
