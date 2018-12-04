@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.3.0"
+    `java-gradle-plugin`
 }
 
 repositories {
@@ -16,4 +17,13 @@ dependencies {
     testImplementation("io.mockk:mockk:1.8.11")
     testImplementation("org.amshove.kluent:kluent:1.42")
     testImplementation("org.jboss.windup.decompiler.procyon:procyon-compilertools:2.5.0.Final")
+}
+
+gradlePlugin {
+    plugins {
+        create("logalot") {
+            id = "net.grandcentrix.logalot"
+            implementationClass = "net.grandcentrix.gradle.logalot.LogALotPlugin"
+        }
+    }
 }
