@@ -14,7 +14,7 @@ open class LogALotPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
         val isAndroid =
-            !(target.plugins.withType(AppPlugin::class.java) + target.plugins.withType(LibraryPlugin::class.java)).isEmpty()
+            target.plugins.hasPlugin(AppPlugin::class.java) || target.plugins.hasPlugin(LibraryPlugin::class.java)
         if (!isAndroid) {
             throw GradleException("'com.android.application' or 'com.android.library' plugin required.")
         }
